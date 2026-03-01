@@ -10,6 +10,11 @@ export function GlobalStyles() {
           box-sizing: border-box;
         }
 
+        h1 {
+          font-family: ${theme.font.heading};
+          margin-top: 0;
+        }
+
         body {
           margin: 0;
           font-family: ${theme.font.body};

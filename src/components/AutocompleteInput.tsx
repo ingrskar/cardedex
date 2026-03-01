@@ -2,7 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import styled from '@emotion/styled';
 
 import type { Pokemon } from '../types';
+import Input from './Input';
 
+// TODO: close dropdown when clicking outside
 type Props = {
   items: Pokemon[];
   onSelect: (item: Pokemon | null) => void;
@@ -14,16 +16,16 @@ export function AutocompleteInput({ items, onSelect }: Props) {
   const optionRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   const results = items.filter((item) =>
-    item.name.toLowerCase().includes(query.toLowerCase()),
+    item.name.toLowerCase().startsWith(query.toLowerCase()),
   );
 
   const displayAutoComplete =
-    query &&
-    results.length > 0 &&
-    query.toLowerCase() !== results[0].name.toLowerCase();
+    query.length > 0 &&
+    (results.length === 0 ||
+      query.toLowerCase() !== results[0].name.toLowerCase());
 
-  function selectItem(item: Pokemon) {
-    setQuery(item.name);
+  function selectItem(item: Pokemon | null) {
+    setQuery(item?.name || '');
     onSelect(item);
   }
 
@@ -40,40 +42,57 @@ export function AutocompleteInput({ items, onSelect }: Props) {
       setActiveIndex((i) => (i - 1 + results.length) % results.length);
     }
 
-    if ((e.key === 'Enter' || e.key === 'Tab') && query.length > 0) {
+    if (e.key === 'Enter' && query.length > 0) {
       e.preventDefault();
       selectItem(results[activeIndex]);
-    }
-
-    if (e.key === 'Escape') {
-      setQuery('');
     }
   }
 
   useEffect(() => {
-    const current = optionRefs.current[activeIndex];
-    current?.scrollIntoView({ block: 'nearest' });
+    const el = optionRefs.current[activeIndex];
+
+    if (el) {
+      el.focus();
+      el.scrollIntoView({ block: 'nearest' });
+    }
   }, [activeIndex]);
 
   return (
     <Wrapper>
       <Input
-        value={query}
-        placeholder="Search…"
-        onChange={(e) => {
-          setQuery(e.target.value);
-          setActiveIndex(0);
-        }}
-        onKeyDown={handleKeyDown}
+        name="pokmon-search-input"
         role="combobox"
         aria-expanded={displayAutoComplete || false}
         aria-controls="autocomplete-list"
         aria-autocomplete="list"
         aria-activedescendant={results[activeIndex]?.name}
+        autoComplete="off"
+        value={query}
+        placeholder="Search…"
+        onChange={(value: string) => {
+          setQuery(value);
+          setActiveIndex(0);
+
+          if (value === '') {
+            onSelect(null);
+            return;
+          }
+
+          const exactMatch = results.find(
+            (item) => item.name.toLowerCase() === value.toLowerCase(),
+          );
+
+          onSelect(exactMatch || null);
+        }}
+        onKeyDown={handleKeyDown}
+        clearable
       />
 
       {displayAutoComplete && (
         <Dropdown>
+          {query.length > 0 && results.length === 0 && (
+            <Option active={false}>No matches found</Option>
+          )}
           {results.map((item, index) => (
             <Option
               key={item.url}
@@ -83,7 +102,8 @@ export function AutocompleteInput({ items, onSelect }: Props) {
               ref={(el) => {
                 optionRefs.current[index] = el;
               }}
-              onMouseDown={() => selectItem(item)}
+              onClick={() => selectItem(item)}
+              onMouseMove={() => setActiveIndex(index)}
             >
               {item.name}
             </Option>
@@ -97,26 +117,7 @@ export function AutocompleteInput({ items, onSelect }: Props) {
 const Wrapper = styled.div`
   position: relative;
   width: 100%;
-  max-width: 420px;
-`;
-
-const Input = styled.input`
-  width: 100%;
-  padding: 12px 14px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  border: 1px solid ${({ theme }) => theme.colors.border};
-  background: ${({ theme }) => theme.colors.surface};
-  color: ${({ theme }) => theme.colors.text};
-  font-size: 14px;
-
-  &::placeholder {
-    color: ${({ theme }) => theme.colors.textMuted};
-  }
-
-  &:focus {
-    outline: none;
-    border-color: ${({ theme }) => theme.colors.accent};
-  }
+  max-width: ${({ theme }) => theme.size.medium};
 `;
 
 const Dropdown = styled.div`
@@ -138,6 +139,7 @@ const Option = styled.div<{ active: boolean }>`
   border-radius: ${({ theme }) => theme.radius.sm};
   cursor: pointer;
   font-size: 14px;
+
   background: ${({ active, theme }) =>
     active ? theme.colors.surfaceHover : 'transparent'};
 

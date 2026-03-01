@@ -6,7 +6,8 @@ export const theme = {
     border: 'rgba(255,255,255,0.08)',
     text: '#FAFAFA',
     textMuted: '#A1A1AA',
-    accent: '#6366F1',
+    primary: '#FFD500',
+    secondary: '#0ff',
   },
   radius: {
     sm: '8px',
@@ -14,6 +15,12 @@ export const theme = {
     lg: '16px',
   },
   font: {
+    heading: "'Orbitron', sans-serif",
     body: "'Inter', system-ui, sans-serif",
+  },
+  size: {
+    small: '250px',
+    medium: '600px',
+    large: '800px',
   },
 };
