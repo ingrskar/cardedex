@@ -1,9 +1,10 @@
+import { useContext, useRef, useState } from 'react';
 import { IconPokeball, IconSwitchHorizontal } from '@tabler/icons-react';
 import styled from '@emotion/styled';
 import useSWR from 'swr';
+import JSConfetti from 'js-confetti';
 
 import { ErrorMessage } from './ErrorMessge';
-import { useContext, useState } from 'react';
 import type { Pokemon, PokemonInfo } from '../types';
 import { CollectionContext } from '../context/CollectionContext';
 import { PrimaryButton, SecondaryButton } from './Button';
@@ -21,6 +22,18 @@ export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
     (cardSide === 'front'
       ? front_default || back_default
       : back_default || front_default) || 'src/assets/default.png';
+
+  const confettiRef = useRef<JSConfetti | null>(null);
+
+  const handleCatch = () => {
+    addToCollection(pokemon);
+
+    confettiRef.current?.addConfetti({
+      emojis: ['⚡️', '🔥', '💧', '🌿', '✨'],
+      emojiSize: 40,
+      confettiNumber: 40,
+    });
+  };
 
   return (
     <>
@@ -101,7 +114,7 @@ export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
                 Release
               </SecondaryButton>
             ) : (
-              <PrimaryButton onClick={() => addToCollection(pokemon)}>
+              <PrimaryButton onClick={handleCatch}>
                 <IconPokeball size={16} />
                 Catch
               </PrimaryButton>

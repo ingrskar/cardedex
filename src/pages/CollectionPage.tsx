@@ -38,7 +38,7 @@ export default function CollectionPage() {
 
 const CollectionWrapper = styled.div`
   display: grid;
-  gap: 24px;
+  gap: 32px;
 `;
 
 const CollectionGrid = styled.div`
