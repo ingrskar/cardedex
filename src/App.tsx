@@ -1,45 +1,94 @@
+import { BrowserRouter, Link, Route, Routes } from 'react-router';
+import { SWRProvider } from './swrConfig';
 import { theme } from './theme/theme';
 import { ThemeProvider } from '@emotion/react';
-import { useState } from 'react';
 import styled from '@emotion/styled';
-import useSWR from 'swr';
 
-import { AutocompleteInput } from './components/AutocompleteInput';
+import { CollectionProvider } from './context/CollectionProvider';
 import { GlobalStyles } from './theme/GlobalStyles';
-import PokemonCard from './components/PokemonCard';
-import type { Pokemon } from './types';
-import { ErrorMessage } from './components/ErrorMessge';
+import CollectionPage from './pages/CollectionPage';
+import SearchPage from './pages/SearchPage';
 
 export default function App() {
-  const { data, error } = useSWR<{ results: Pokemon[] }>(
-    'https://pokeapi.co/api/v2/pokemon?limit=100000',
-  );
-
-  const [selected, setSelected] = useState<Pokemon | null>(null);
-
   return (
-    <ThemeProvider theme={theme}>
-      <GlobalStyles />
-      <Wrapper>
-        {error && (
-          <ErrorMessage role="alert">
-            Failed to load Pokémon data. Please try again later.
-          </ErrorMessage>
-        )}
-        <h1>Gotta catch 'em all!</h1>
-        <AutocompleteInput
-          items={data?.results || []}
-          onSelect={(item: Pokemon | null) => setSelected(item)}
-        />
-        {selected && <PokemonCard pokemon={selected} />}
-      </Wrapper>
-    </ThemeProvider>
+    <SWRProvider>
+      <BrowserRouter>
+        <CollectionProvider>
+          <ThemeProvider theme={theme}>
+            <GlobalStyles />
+
+            <Header>
+              <Nav>
+                <Link to="/">
+                  <Logo
+                    src="/src/assets/icon.svg?react"
+                    alt="Cardédex Logo"
+                    aria-label="Back to search page"
+                  />
+                </Link>
+                <LinkWrapper to="/collection">Collection</LinkWrapper>
+              </Nav>
+            </Header>
+
+            <Main>
+              <Routes>
+                <Route path="/" element={<SearchPage />} />
+                <Route path="/collection" element={<CollectionPage />} />
+              </Routes>
+            </Main>
+          </ThemeProvider>
+        </CollectionProvider>
+      </BrowserRouter>
+    </SWRProvider>
   );
 }
+const HEADER_HEIGHT = '72px';
 
-const Wrapper = styled.div`
-  width: 100%;
-  padding: 40px;
-  display: grid;
+const Header = styled.header`
+  height: ${HEADER_HEIGHT};
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 11;
+  background: ${({ theme }) => theme.colors.bg};
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+`;
+
+const Nav = styled.nav`
+  max-width: 1286px;
+  height: 100%;
+  margin: 0 auto;
+  padding: 0 40px;
+
+  display: flex;
+  align-items: center;
   gap: 24px;
+`;
+
+const Logo = styled.img`
+  height: 34px;
+`;
+
+const LinkWrapper = styled(Link)`
+  color: white;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+
+  &:hover {
+    color: ${({ theme }) => theme.colors.primary};
+  }
+`;
+
+const Main = styled.main`
+  padding-top: ${HEADER_HEIGHT};
+
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  gap: 48px;
+
+  max-width: 1286px;
+  margin: 0 auto;
+  padding-left: 40px;
+  padding-right: 40px;
 `;

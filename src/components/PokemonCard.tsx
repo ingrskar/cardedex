@@ -1,22 +1,27 @@
-import { IconPokeball } from '@tabler/icons-react';
-import { useState } from 'react';
+import { IconPokeball, IconSwitchHorizontal } from '@tabler/icons-react';
 import styled from '@emotion/styled';
 import useSWR from 'swr';
 
-import type { Pokemon, PokemonInfo } from '../types';
 import { ErrorMessage } from './ErrorMessge';
+import { useContext, useState } from 'react';
+import type { Pokemon, PokemonInfo } from '../types';
+import { CollectionContext } from '../context/CollectionContext';
+import { PrimaryButton, SecondaryButton } from './Button';
 
 export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
   const { data, error } = useSWR<PokemonInfo>(
     `https://pokeapi.co/api/v2/pokemon/${pokemon.name}`,
   );
-  const [side, setSide] = useState<'front' | 'back'>('front');
+  const { collection, addToCollection, removeFromCollection } =
+    useContext(CollectionContext)!;
+  const [cardSide, setCardSide] = useState<'front' | 'back'>('front');
 
   const { front_default, back_default } = data?.sprites || {};
   const imgSrc =
-    (side === 'front'
+    (cardSide === 'front'
       ? front_default || back_default
       : back_default || front_default) || 'src/assets/default.png';
+
   return (
     <>
       {error && (
@@ -27,12 +32,12 @@ export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
       {data && (
         <CardWrapper>
           <Card
-            onClick={() => setSide(side === 'front' ? 'back' : 'front')}
-            aria-label={`View ${pokemon.name} ${side === 'front' ? 'back' : 'front'} side`}
-            side={side}
+            onClick={() => setCardSide(cardSide === 'front' ? 'back' : 'front')}
+            aria-label={`View ${pokemon.name} ${cardSide === 'front' ? 'back' : 'front'} side`}
+            side={cardSide}
           >
             <CardImg src={imgSrc} alt={pokemon.name} />
-            {side === 'front' ? (
+            {cardSide === 'front' ? (
               <>
                 <CardInfo>
                   <h2>{pokemon.name.toUpperCase()}</h2>
@@ -88,10 +93,29 @@ export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
               </CardInfo>
             )}
           </Card>
-          <CatchButton>
-            <IconPokeball size={16} />
-            Catch
-          </CatchButton>
+
+          <ButtonContainer>
+            {collection.some((p) => p.name === pokemon.name) ? (
+              <SecondaryButton onClick={() => removeFromCollection(pokemon)}>
+                <IconPokeball size={16} />
+                Release
+              </SecondaryButton>
+            ) : (
+              <PrimaryButton onClick={() => addToCollection(pokemon)}>
+                <IconPokeball size={16} />
+                Catch
+              </PrimaryButton>
+            )}
+
+            <SecondaryButton
+              onClick={() =>
+                setCardSide(cardSide === 'front' ? 'back' : 'front')
+              }
+            >
+              <IconSwitchHorizontal size={16} />
+              Flip
+            </SecondaryButton>
+          </ButtonContainer>
         </CardWrapper>
       )}
     </>
@@ -100,25 +124,26 @@ export default function PokemonCard({ pokemon }: { pokemon: Pokemon }) {
 
 const CardWrapper = styled.div`
   perspective: 1000px;
+  max-width: fit-content;
 
   display: grid;
-  gap: 16px;
-  max-width: fit-content;
+  gap: 24px;
+  grid-template-rows: 1fr auto;
 `;
 
 const Card = styled.div<{ side: 'front' | 'back' }>`
-  width: 100%;
+  display: grid;
+  gap: 16px;
+  height: 350px;
   padding: 20px;
-  border-radius: ${({ theme }) => theme.radius.md};
-  border: 1px solid ${({ theme }) => theme.colors.primary};
+  width: ${({ theme }) => theme.size.sm};
+
+  cursor: pointer;
   background: ${({ theme }) =>
     'linear-gradient(145deg, ' + theme.colors.surface + ', #1b1f3b)'};
   color: ${({ theme }) => theme.colors.text};
-  width: ${({ theme }) => theme.size.small};
-  height: 350px;
-  cursor: pointer;
-  display: grid;
-  gap: 16px;
+  border: 1px solid ${({ theme }) => theme.colors.primary};
+  border-radius: ${({ theme }) => theme.radius.md};
 
   transform-style: preserve-3d;
   transition: transform 0.2s cubic-bezier(0.4, 0.2, 0.2, 1);
@@ -134,12 +159,13 @@ const Card = styled.div<{ side: 'front' | 'back' }>`
 
 const CardImg = styled.img`
   width: 100%;
-  border-radius: ${({ theme }) => theme.radius.sm};
-  border: 1px solid ${({ theme }) => theme.colors.secondary};
   margin: 0 auto;
   max-height: 170px;
   max-width: 170px;
   padding: 8px;
+
+  border-radius: ${({ theme }) => theme.radius.sm};
+  border: 1px solid ${({ theme }) => theme.colors.secondary};
 `;
 
 const CardInfo = styled.div<{ flipped?: boolean }>`
@@ -148,6 +174,8 @@ const CardInfo = styled.div<{ flipped?: boolean }>`
   border: 1px solid ${({ theme }) => theme.colors.secondary};
   text-align: center;
   max-height: fit-content;
+
+  transform: ${({ flipped }) => (flipped ? 'scaleX(-1)' : 'scaleX(1)')};
 
   h2 {
     font-family: ${({ theme }) => theme.font.heading};
@@ -159,8 +187,6 @@ const CardInfo = styled.div<{ flipped?: boolean }>`
     margin: 0;
     font-size: 14px;
   }
-
-  transform: ${({ flipped }) => (flipped ? 'scaleX(-1)' : 'scaleX(1)')};
 `;
 
 const Stat = styled.div`
@@ -189,21 +215,8 @@ const StatBar = styled.div<{ value: number }>`
   }
 `;
 
-const CatchButton = styled.button`
-  background: ${({ theme }) => theme.colors.primary};
-  border: none;
-  color: ${({ theme }) => theme.colors.surface};
-  cursor: pointer;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-  padding: 10px;
-  border-radius: ${({ theme }) => theme.radius.sm};
-  font-weight: bold;
-  width: 100%;
-
-  &:hover {
-    background: ${({ theme }) => theme.colors.primary}cc;
-  }
+const ButtonContainer = styled.div`
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 12px;
 `;

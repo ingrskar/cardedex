@@ -19,8 +19,8 @@ export const theme = {
     body: "'Inter', system-ui, sans-serif",
   },
   size: {
-    small: '250px',
-    medium: '600px',
-    large: '800px',
+    sm: '250px',
+    md: '400px',
+    lg: '800px',
   },
 };

@@ -117,7 +117,7 @@ export function AutocompleteInput({ items, onSelect }: Props) {
 const Wrapper = styled.div`
   position: relative;
   width: 100%;
-  max-width: ${({ theme }) => theme.size.medium};
+  max-width: ${({ theme }) => theme.size.md};
 `;
 
 const Dropdown = styled.div`
@@ -139,6 +139,7 @@ const Option = styled.div<{ active: boolean }>`
   border-radius: ${({ theme }) => theme.radius.sm};
   cursor: pointer;
   font-size: 14px;
+  text-align: left;
 
   background: ${({ active, theme }) =>
     active ? theme.colors.surfaceHover : 'transparent'};
