@@ -1,6 +1,6 @@
-import styled from '@emotion/styled';
 import { IconX } from '@tabler/icons-react';
 import React, { forwardRef } from 'react';
+import styled from '@emotion/styled';
 
 type Props = {
   value: string;

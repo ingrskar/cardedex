@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
+
 import { CollectionContext } from './CollectionContext';
 import type { Pokemon } from '../types';
 
@@ -13,30 +14,29 @@ export const CollectionProvider = ({ children }: Props) => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  function addToCollection(pokemon: Pokemon) {
+  const addToCollection = useCallback((pokemon: Pokemon) => {
     setCollection((prev) => {
       const updated = [...prev, pokemon];
       sessionStorage.setItem('myPokemonCollection', JSON.stringify(updated));
       return updated;
     });
-  }
+  }, []);
 
-  function removeFromCollection(pokemon: Pokemon) {
+  const removeFromCollection = useCallback((pokemon: Pokemon) => {
     setCollection((prev) => {
       const updated = prev.filter((p) => p.name !== pokemon.name);
       sessionStorage.setItem('myPokemonCollection', JSON.stringify(updated));
       return updated;
     });
-  }
+  }, []);
 
   const contextValue = useMemo(
     () => ({
       collection,
-      setCollection,
       addToCollection,
       removeFromCollection,
     }),
-    [collection],
+    [collection, addToCollection, removeFromCollection],
   );
 
   return (

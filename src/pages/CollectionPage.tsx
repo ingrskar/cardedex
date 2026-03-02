@@ -3,9 +3,6 @@ import { useContext } from 'react';
 
 import { CollectionContext } from '../context/CollectionContext';
 import PokemonCard from '../components/PokemonCard';
-import type { Pokemon } from '../types';
-
-// TODO: add filtering/sorting options
 
 export default function CollectionPage() {
   const { collection } = useContext(CollectionContext);
@@ -26,7 +23,7 @@ export default function CollectionPage() {
             {collection.length === 1 ? '' : 's'}!
           </p>
           <CollectionGrid>
-            {collection.map((pokemon: Pokemon) => (
+            {collection.map((pokemon) => (
               <PokemonCard key={pokemon.url} pokemon={pokemon} />
             ))}
           </CollectionGrid>

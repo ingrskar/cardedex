@@ -4,7 +4,6 @@ import styled from '@emotion/styled';
 import type { Pokemon } from '../types';
 import Input from './Input';
 
-// TODO: close dropdown when clicking outside
 type Props = {
   items: Pokemon[];
   onSelect: (item: Pokemon | null) => void;
@@ -24,12 +23,12 @@ export function AutocompleteInput({ items, onSelect }: Props) {
     (results.length === 0 ||
       query.toLowerCase() !== results[0].name.toLowerCase());
 
-  function selectItem(item: Pokemon | null) {
+  const selectItem = (item: Pokemon | null) => {
     setQuery(item?.name || '');
     onSelect(item);
-  }
+  };
 
-  function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (!results.length) return;
 
     if (e.key === 'ArrowDown') {
@@ -46,13 +45,12 @@ export function AutocompleteInput({ items, onSelect }: Props) {
       e.preventDefault();
       selectItem(results[activeIndex]);
     }
-  }
+  };
 
   useEffect(() => {
     const el = optionRefs.current[activeIndex];
 
     if (el) {
-      el.focus();
       el.scrollIntoView({ block: 'nearest' });
     }
   }, [activeIndex]);
@@ -62,7 +60,7 @@ export function AutocompleteInput({ items, onSelect }: Props) {
       <Input
         name="pokmon-search-input"
         role="combobox"
-        aria-expanded={displayAutoComplete || false}
+        aria-expanded={displayAutoComplete}
         aria-controls="autocomplete-list"
         aria-autocomplete="list"
         aria-activedescendant={results[activeIndex]?.name}
@@ -78,7 +76,7 @@ export function AutocompleteInput({ items, onSelect }: Props) {
             return;
           }
 
-          const exactMatch = results.find(
+          const exactMatch = items.find(
             (item) => item.name.toLowerCase() === value.toLowerCase(),
           );
 
@@ -103,7 +101,7 @@ export function AutocompleteInput({ items, onSelect }: Props) {
                 optionRefs.current[index] = el;
               }}
               onClick={() => selectItem(item)}
-              onMouseMove={() => setActiveIndex(index)}
+              onMouseEnter={() => setActiveIndex(index)}
             >
               {item.name}
             </Option>
